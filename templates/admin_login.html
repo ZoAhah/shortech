@@ -1,21 +1,33 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <title>Admin - Connexion</title>
-  <link rel="stylesheet" href="/static/style.css">
-</head>
-<body>
-  <div class="container">
-    <h2>Connexion Admin</h2>
-    {% if error %}
-      <div class="message error">{{ error }}</div>
-    {% endif %}
-    <form method="POST">
-      <input type="text" name="username" placeholder="Identifiant" required>
-      <input type="password" name="password" placeholder="Mot de passe" required>
-      <button type="submit">Connexion</button>
-    </form>
-  </div>
-</body>
-</html>
+{% if access_granted %}
+<h2>Liste des inscrits</h2>
+<table>
+  <thead>
+    <tr>
+      <th>Nom</th>
+      <th>Email</th>
+      <th>Ville</th>
+      <th>Poste</th>
+      <th>Contrat</th>
+      <th>Date</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in rows %}
+    <tr>
+      <td>{{ row[1] }}</td>
+      <td>{{ row[2] }}</td>
+      <td>{{ row[3] }}</td>
+      <td>{{ row[4] }}</td>
+      <td>{{ row[5] }}</td>
+      <td>{{ row[6] }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<form method="POST">
+  <label>Mot de passe admin :</label>
+  <input type="password" name="password" required>
+  <button type="submit">Accéder</button>
+</form>
+{% endif %}

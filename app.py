@@ -1,121 +1,73 @@
-from flask import Flask, render_template, request, redirect, session, url_for, send_file
-import csv
+from flask import Flask, render_template, request, redirect, url_for, flash
+import sqlite3
 import os
-import re
-import datetime
+from datetime import datetime
 
 app = Flask(__name__)
-app.secret_key = 'votre_clé_secrète_ici'  # à personnaliser en production
+app.secret_key = "supersecretkey"
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "shortech2025")
+DATABASE = "database.db"
 
-DATA_FILE = 'data/leads.csv'
+# ✅ Crée la table si elle n'existe pas
+def init_db():
+    with sqlite3.connect(DATABASE) as conn:
+        c = conn.cursor()
+        c.execute('''CREATE TABLE IF NOT EXISTS candidates (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        name TEXT NOT NULL,
+                        email TEXT NOT NULL,
+                        location TEXT NOT NULL,
+                        position TEXT NOT NULL,
+                        contract_type TEXT NOT NULL,
+                        date TEXT NOT NULL
+                    )''')
+        conn.commit()
 
-ADMIN_USERNAME = 'admin'
-ADMIN_PASSWORD = 'shorttech2025'
+init_db()
 
-def email_exists(email):
-    if not os.path.exists(DATA_FILE):
-        return False
-    with open(DATA_FILE, 'r', newline='', encoding='utf-8') as f:
-        reader = csv.reader(f)
-        for row in reader:
-            if len(row) > 1 and row[1].lower() == email.lower():
-                return True
-    return False
-
-def is_valid_email(email):
-    pattern = r'^[\w\.-]+@[\w\.-]+\.\w+$'
-    return re.match(pattern, email)
-
-@app.route('/')
+# ✅ Page principale
+@app.route("/", methods=["GET", "POST"])
 def index():
-    return render_template('index.html', message=None)
+    if request.method == "POST":
+        name = request.form["name"]
+        email = request.form["email"]
+        location = request.form["location"]
+        position = request.form["position"]
+        contract_type = request.form["contract_type"]
+        date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-@app.route('/submit', methods=['POST'])
-def submit():
-    firstname = request.form.get('firstname', '').strip()
-    email = request.form.get('email', '').strip()
-    job = request.form.get('job', '').strip()
-    location = request.form.get('location', '').strip()
-    contract = request.form.get('contract', '').strip()
+        if not all([name, email, location, position, contract_type]):
+            flash("Tous les champs sont obligatoires.")
+            return redirect(url_for("index"))
 
-    if not firstname or not email or not job or not location or not contract:
-        return render_template('index.html', message="Tous les champs sont obligatoires.", success=False)
+        with sqlite3.connect(DATABASE) as conn:
+            c = conn.cursor()
+            c.execute("INSERT INTO candidates (name, email, location, position, contract_type, date) VALUES (?, ?, ?, ?, ?, ?)",
+                      (name, email, location, position, contract_type, date))
+            conn.commit()
 
-    if not is_valid_email(email):
-        return render_template('index.html', message="Email invalide.", success=False)
+        flash("Inscription enregistrée avec succès ✅")
+        return redirect(url_for("index"))
 
-    if email_exists(email):
-        return render_template('index.html', message="Cet email est déjà inscrit.", success=False)
+    return render_template("index.html")
 
-    os.makedirs('data', exist_ok=True)
-    with open(DATA_FILE, 'a', newline='', encoding='utf-8') as f:
-        writer = csv.writer(f)
-        date_now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
-        writer.writerow([firstname, email, job, location, contract, date_now])
+# ✅ Admin : afficher les inscrits
+@app.route("/admin", methods=["GET", "POST"])
+def admin():
+    if request.method == "POST":
+        password = request.form.get("password")
+        if password != ADMIN_PASSWORD:
+            flash("Mot de passe incorrect ❌")
+            return redirect(url_for("admin"))
 
-    return render_template('index.html', message="Merci ! Tu recevras bientôt des offres 👍", success=True)
+        with sqlite3.connect(DATABASE) as conn:
+            c = conn.cursor()
+            c.execute("SELECT * FROM candidates ORDER BY date DESC")
+            rows = c.fetchall()
 
-@app.route('/admin', methods=['GET', 'POST'])
-def admin_login():
-    if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
-        if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
-            session['admin'] = True
-            return redirect(url_for('admin_dashboard'))
-        else:
-            return render_template('admin_login.html', error="Identifiants incorrects.")
-    return render_template('admin_login.html')
+        return render_template("admin.html", rows=rows, access_granted=True)
 
-@app.route('/dashboard')
-def admin_dashboard():
-    if not session.get('admin'):
-        return redirect(url_for('admin_login'))
+    return render_template("admin.html", access_granted=False)
 
-    filters = {
-        'firstname': request.args.get('firstname', '').lower(),
-        'email': request.args.get('email', '').lower(),
-        'job': request.args.get('job', '').lower(),
-        'location': request.args.get('location', '').lower(),
-        'contract': request.args.get('contract', '').lower()
-    }
-
-    data = []
-    if os.path.exists(DATA_FILE):
-        with open(DATA_FILE, newline='', encoding='utf-8') as f:
-            reader = csv.reader(f)
-            for row in reader:
-                if len(row) < 6:
-                    continue
-                match = True
-                if filters['firstname'] and filters['firstname'] not in row[0].lower():
-                    match = False
-                if filters['email'] and filters['email'] not in row[1].lower():
-                    match = False
-                if filters['job'] and filters['job'] not in row[2].lower():
-                    match = False
-                if filters['location'] and filters['location'] not in row[3].lower():
-                    match = False
-                if filters['contract'] and filters['contract'] != row[4].lower():
-                    match = False
-                if match:
-                    data.append(row)
-
-    return render_template('admin_dashboard.html', data=data)
-
-@app.route('/download')
-def download_csv():
-    if not session.get('admin'):
-        return redirect(url_for('admin_login'))
-
-    if os.path.exists(DATA_FILE):
-        return send_file(DATA_FILE, as_attachment=True)
-    return "Fichier introuvable", 404
-
-@app.route('/logout')
-def logout():
-    session.pop('admin', None)
-    return redirect(url_for('index'))
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run(debug=True)
