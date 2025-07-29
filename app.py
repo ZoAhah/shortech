@@ -46,23 +46,6 @@ def admin():
     # GET => juste la page login admin
     return render_template("admin.html", access_granted=False)
 
-# Admin : afficher les inscrits
-@app.route("/admin", methods=["GET", "POST"])
-def admin():
-    if request.method == "POST":
-        password = request.form.get("password")
-        if password != ADMIN_PASSWORD:
-            flash("Mot de passe incorrect ❌")
-            return redirect(url_for("admin"))
-
-        with sqlite3.connect(DATABASE) as conn:
-            c = conn.cursor()
-            c.execute("SELECT * FROM candidates ORDER BY date DESC")
-            rows = c.fetchall()
-
-        return render_template("admin.html", rows=rows, access_granted=True)
-
-    return render_template("admin.html", access_granted=False)
 
 if __name__ == "__main__":
     app.run(debug=True)
