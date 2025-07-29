@@ -25,15 +25,39 @@ def init_db():
 
 init_db()
 
-# ... le reste du code reste inchangé ...
+# ✅ Page d'accueil + formulaire d'inscription
+@app.route("/", methods=["GET", "POST"])
+def index():
+    if request.method == "POST":
+        name = request.form["firstname"]
+        email = request.form["email"]
+        location = request.form["location"]
+        position = request.form["job"]
+        contract_type = request.form["contract"]
+        date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-# Admin : afficher les inscrits et formulaire de connexion
+        if not all([name, email, location, position, contract_type]):
+            flash("Tous les champs sont obligatoires.", "error")
+            return redirect(url_for("index"))
+
+        with sqlite3.connect(DATABASE) as conn:
+            c = conn.cursor()
+            c.execute("INSERT INTO candidates (name, email, location, position, contract_type, date) VALUES (?, ?, ?, ?, ?, ?)",
+                      (name, email, location, position, contract_type, date))
+            conn.commit()
+
+        flash("Inscription enregistrée avec succès ✅", "success")
+        return redirect(url_for("index"))
+
+    return render_template("index.html")
+
+# ✅ Admin : afficher les inscrits
 @app.route("/admin", methods=["GET", "POST"])
 def admin():
     if request.method == "POST":
         password = request.form.get("password")
         if password != ADMIN_PASSWORD:
-            flash("Mot de passe incorrect ❌")
+            flash("Mot de passe incorrect ❌", "error")
             return redirect(url_for("admin"))
 
         with sqlite3.connect(DATABASE) as conn:
@@ -43,9 +67,7 @@ def admin():
 
         return render_template("admin.html", rows=rows, access_granted=True)
 
-    # GET => juste la page login admin
     return render_template("admin.html", access_granted=False)
-
 
 if __name__ == "__main__":
     app.run(debug=True)
