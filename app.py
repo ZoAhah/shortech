@@ -42,8 +42,10 @@ def index():
 
         with sqlite3.connect(DATABASE) as conn:
             c = conn.cursor()
-            c.execute("INSERT INTO candidates (name, email, location, position, contract_type, date) VALUES (?, ?, ?, ?, ?, ?)",
-                      (name, email, location, position, contract_type, date))
+            c.execute("""
+                INSERT INTO candidates (name, email, location, position, contract_type, date)
+                VALUES (?, ?, ?, ?, ?, ?)
+            """, (name, email, location, position, contract_type, date))
             conn.commit()
 
         flash("Inscription enregistrée avec succès ✅", "success")
