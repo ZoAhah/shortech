@@ -8,7 +8,7 @@ app.secret_key = "supersecretkey"
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "shortech2025")
 DATABASE = "database.db"
 
-# ✅ Crée la table si elle n'existe pas
+# Crée la table si elle n'existe pas
 def init_db():
     with sqlite3.connect(DATABASE) as conn:
         c = conn.cursor()
@@ -25,33 +25,28 @@ def init_db():
 
 init_db()
 
-# ✅ Page principale
-@app.route("/", methods=["GET", "POST"])
-def index():
-    if request.method == "POST":
-        name = request.form["name"]
-        email = request.form["email"]
-        location = request.form["location"]
-        position = request.form["position"]
-        contract_type = request.form["contract_type"]
-        date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+# ... le reste du code reste inchangé ...
 
-        if not all([name, email, location, position, contract_type]):
-            flash("Tous les champs sont obligatoires.")
-            return redirect(url_for("index"))
+# Admin : afficher les inscrits et formulaire de connexion
+@app.route("/admin", methods=["GET", "POST"])
+def admin():
+    if request.method == "POST":
+        password = request.form.get("password")
+        if password != ADMIN_PASSWORD:
+            flash("Mot de passe incorrect ❌")
+            return redirect(url_for("admin"))
 
         with sqlite3.connect(DATABASE) as conn:
             c = conn.cursor()
-            c.execute("INSERT INTO candidates (name, email, location, position, contract_type, date) VALUES (?, ?, ?, ?, ?, ?)",
-                      (name, email, location, position, contract_type, date))
-            conn.commit()
+            c.execute("SELECT * FROM candidates ORDER BY date DESC")
+            rows = c.fetchall()
 
-        flash("Inscription enregistrée avec succès ✅")
-        return redirect(url_for("index"))
+        return render_template("admin.html", rows=rows, access_granted=True)
 
-    return render_template("index.html")
+    # GET => juste la page login admin
+    return render_template("admin.html", access_granted=False)
 
-# ✅ Admin : afficher les inscrits
+# Admin : afficher les inscrits
 @app.route("/admin", methods=["GET", "POST"])
 def admin():
     if request.method == "POST":

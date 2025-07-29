@@ -3,21 +3,24 @@
 <head>
   <meta charset="UTF-8">
   <title>ShortTech — Opportunités courtes en informatique</title>
-  <link rel="stylesheet" href="/static/style.css">
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-
-
 </head>
 <body>
   <div class="container">
     <h1>ShortTech</h1>
     <p>Reçois des offres en CDD, alternance ou freelance dans l’informatique directement dans ta boîte mail.</p>
 
-    {% if message %}
-      <div class="message {{ 'success' if success else 'error' }}">{{ message }}</div>
-    {% endif %}
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div class="message">
+          {% for message in messages %}
+            <p>{{ message }}</p>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
 
-    <form action="/submit" method="POST">
+    <form method="POST">
       <input type="text" name="firstname" placeholder="Prénom" required>
       <input type="email" name="email" placeholder="Email" required>
       <input type="text" name="job" placeholder="Poste recherché (ex : UX Designer, Dev Front...)" required>

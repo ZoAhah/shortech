@@ -1,33 +1,64 @@
-{% if access_granted %}
-<h2>Liste des inscrits</h2>
-<table>
-  <thead>
-    <tr>
-      <th>Nom</th>
-      <th>Email</th>
-      <th>Ville</th>
-      <th>Poste</th>
-      <th>Contrat</th>
-      <th>Date</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for row in rows %}
-    <tr>
-      <td>{{ row[1] }}</td>
-      <td>{{ row[2] }}</td>
-      <td>{{ row[3] }}</td>
-      <td>{{ row[4] }}</td>
-      <td>{{ row[5] }}</td>
-      <td>{{ row[6] }}</td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
-{% else %}
-<form method="POST">
-  <label>Mot de passe admin :</label>
-  <input type="password" name="password" required>
-  <button type="submit">Accéder</button>
-</form>
-{% endif %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin - ShortTech</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+  <div class="container">
+    <h1>Administration ShortTech</h1>
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div class="message error">
+          {% for message in messages %}
+            <p>{{ message }}</p>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    {% if not access_granted %}
+      <form method="POST">
+        <label for="password">Mot de passe admin :</label><br />
+        <input type="password" id="password" name="password" required />
+        <button type="submit">Se connecter</button>
+      </form>
+    {% else %}
+      <h2>Liste des inscrits</h2>
+      {% if rows %}
+        <table border="1" cellpadding="5" cellspacing="0">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Prénom</th>
+              <th>Email</th>
+              <th>Ville</th>
+              <th>Poste recherché</th>
+              <th>Type de contrat</th>
+              <th>Date d'inscription</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in rows %}
+              <tr>
+                <td>{{ row[0] }}</td>
+                <td>{{ row[1] }}</td>
+                <td>{{ row[2] }}</td>
+                <td>{{ row[3] }}</td>
+                <td>{{ row[4] }}</td>
+                <td>{{ row[5] }}</td>
+                <td>{{ row[6] }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p>Aucun inscrit pour le moment.</p>
+      {% endif %}
+      <p><a href="{{ url_for('admin') }}">Se déconnecter</a></p>
+    {% endif %}
+  </div>
+</body>
+</html>
