@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>ShortTech — Opportunités courtes en informatique</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+
+</head>
+<body>
+  <div class="container">
+    <h1>ShortTech</h1>
+    <p>Reçois des offres en CDD, alternance ou freelance dans l’informatique directement dans ta boîte mail.</p>
+
+    {% if message %}
+      <div class="message {{ 'success' if success else 'error' }}">{{ message }}</div>
+    {% endif %}
+
+    <form action="/submit" method="POST">
+      <input type="text" name="firstname" placeholder="Prénom" required>
+      <input type="email" name="email" placeholder="Email" required>
+      <input type="text" name="job" placeholder="Poste recherché (ex : UX Designer, Dev Front...)" required>
+      <input type="text" name="location" placeholder="Ville et arrondissement (ex : Paris 10ème Lyon 3e...)" required>
+
+      <select name="contract" required>
+        <option value="" disabled selected>Type de contrat préféré</option>
+        <option value="freelance">Freelance</option>
+        <option value="CDD">CDD</option>
+        <option value="alternance">Alternance</option>
+      </select>
+
+      <button type="submit">Je veux recevoir des offres</button>
+    </form>
+  </div>
+</body>
+</html>

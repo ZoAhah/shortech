@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin - Inscriptions</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+</head>
+<body>
+  <div class="container">
+    <h2>Liste des inscrits</h2>
+    <a href="/logout">Se déconnecter</a>
+
+    <form method="get" action="/dashboard" style="margin-top: 20px;">
+      <input type="text" name="firstname" placeholder="Prénom" value="{{ request.args.get('firstname', '') }}">
+      <input type="text" name="email" placeholder="Email" value="{{ request.args.get('email', '') }}">
+      <input type="text" name="job" placeholder="Poste" value="{{ request.args.get('job', '') }}">
+      <input type="text" name="location" placeholder="Localisation" value="{{ request.args.get('location', '') }}">
+      <select name="contract">
+        <option value="">Type de contrat</option>
+        <option value="freelance" {% if request.args.get('contract') == 'freelance' %}selected{% endif %}>Freelance</option>
+        <option value="CDD" {% if request.args.get('contract') == 'CDD' %}selected{% endif %}>CDD</option>
+        <option value="alternance" {% if request.args.get('contract') == 'alternance' %}selected{% endif %}>Alternance</option>
+      </select>
+      <button type="submit">Filtrer</button>
+    </form>
+
+    <form action="{{ url_for('download_csv') }}" method="get" style="margin-top: 15px;">
+      <button type="submit">📥 Télécharger les inscrits (.csv)</button>
+    </form>
+
+    <table>
+      <tr>
+        <th>Prénom</th>
+        <th>Email</th>
+        <th>Poste</th>
+        <th>Localisation</th>
+        <th>Contrat</th>
+        <th>Date d'inscription</th>
+      </tr>
+      {% for row in data %}
+        <tr>
+          <td>{{ row[0] }}</td>
+          <td>{{ row[1] }}</td>
+          <td>{{ row[2] }}</td>
+          <td>{{ row[3] }}</td>
+          <td>{{ row[4] }}</td>
+          <td>{{ row[5] }}</td>
+        </tr>
+      {% endfor %}
+    </table>
+  </div>
+</body>
+</html>
