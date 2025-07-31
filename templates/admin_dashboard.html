@@ -19,9 +19,9 @@
       <input type="text" name="location" placeholder="Localisation" value="{{ request.args.get('location', '') }}">
       <select name="contract">
         <option value="">Type de contrat</option>
-        <option value="freelance" {% if request.args.get('contract') == 'freelance' %}selected{% endif %}>Freelance</option>
+        <option value="Freelance" {% if request.args.get('contract') == 'freelance' %}selected{% endif %}>Freelance</option>
         <option value="CDD" {% if request.args.get('contract') == 'CDD' %}selected{% endif %}>CDD</option>
-        <option value="alternance" {% if request.args.get('contract') == 'alternance' %}selected{% endif %}>Alternance</option>
+        <option value="Alternance" {% if request.args.get('contract') == 'alternance' %}selected{% endif %}>Alternance</option>
       </select>
       <button type="submit">Filtrer</button>
     </form>
