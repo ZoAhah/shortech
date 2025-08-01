@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF‑8">
+  <title>Offres ShortTech</title>
+</head>
+<body>
+  <p>Bonjour {{ firstname }},</p>
+  <p>Voici quelques offres récentes correspondant à ton profil :</p>
+  <ul>
+  {% for o in offers %}
+    <li>
+      <a href="{{ o.link }}">{{ o.title }}</a> ({{ o.location }}, {{ o.contract }})
+    </li>
+  {% endfor %}
+  </ul>
+  <p>Bon courage dans ta recherche !<br>— L’équipe ShortTech</p>
+</body>
+</html>
